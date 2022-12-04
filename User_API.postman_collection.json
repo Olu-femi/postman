@@ -1,0 +1,283 @@
+{
+	"info": {
+		"_postman_id": "e266774d-49cb-4be6-b9bd-bbd946a5c58a",
+		"name": "User_API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23969999"
+	},
+	"item": [
+		{
+			"name": "Get All Users",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Check for response time ",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							" ",
+							"//Check for valid response status",
+							"pm.test(\"Verify Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"//Check for expected responseBody",
+							"pm.test(\"Verify response data has list of users\", function () {",
+							"    pm.expect(pm.response.json().data).to.not.be.empty;",
+							"",
+							"    pm.environment.set('usersID',pm.response.json().data[0].id)",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseurl}}/api/users",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"api",
+						"users"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get single user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Check for response time ",
+							"pm.test(\"Response time is less than 500ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(500);",
+							"});",
+							" ",
+							"//Check for valid response status",
+							"pm.test(\"Verify Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"//Check for expected responseBody",
+							"pm.test(\"Verify the user record is fetched\", function () {",
+							"    pm.expect(pm.response.json().data).to.not.be.empty;",
+							"    pm.expect(pm.response.json().data.id).to.eql(pm.environment.get('usersID'));   ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseurl}}/api/users/:userId",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"api",
+						"users",
+						":userId"
+					],
+					"variable": [
+						{
+							"key": "userId",
+							"value": "{{usersID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Users",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set('name',pm.variables.replaceIn('{{$randomFullName}}'));",
+							"pm.environment.set('job',pm.variables.replaceIn('{{$randomJobDescriptor}}'));",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Check for response time ",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							" ",
+							"//Check for valid response status",
+							"pm.test(\"Verify Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"//Check for expected responseBody",
+							"pm.test(\"Verify the user was created successfull\", function () {",
+							"    pm.expect(pm.response.json()).to.not.be.empty;",
+							"    pm.expect(pm.response.json().id).to.not.be.null;",
+							"",
+							"    pm.environment.set('userID',pm.response.json().id)",
+							"",
+							"    //Check the value passed match",
+							"    pm.expect(pm.response.json().name).eql(pm.environment.get('name'));",
+							"    pm.expect(pm.response.json().job).eql(pm.environment.get('job'));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"{{name}}\",\n    \"job\": \"{{job}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseurl}}/api/users",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"api",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update User Record",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set('name',pm.variables.replaceIn('{{$randomFullName}}'));",
+							"pm.environment.set('job',pm.variables.replaceIn('{{$randomJobDescriptor}}'));",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Check for response time ",
+							"pm.test(\"Response time is less than 300ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(300);",
+							"});",
+							" ",
+							"//Check for valid response status",
+							"pm.test(\"Verify Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"//Check for expected responseBody",
+							"pm.test(\"Verify the user was updated successfull\", function () {",
+							"    pm.expect(pm.response.json()).to.not.be.empty;",
+							"    pm.expect(pm.response.json().id).to.not.be.null;",
+							"",
+							"    //Check the value passed match",
+							"    pm.expect(pm.response.json().name).eql(pm.environment.get('name'));",
+							"    pm.expect(pm.response.json().job).eql(pm.environment.get('job'));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"{{name}}\",\n    \"job\": \"{{job}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseurl}}/api/users/:userID",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"api",
+						"users",
+						":userID"
+					],
+					"variable": [
+						{
+							"key": "userID",
+							"value": "{{userID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
