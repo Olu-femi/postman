@@ -13,30 +13,18 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"//Check for response time ",
 							"pm.test(\"Response time is less than 200ms\", function () {",
 							"    pm.expect(pm.response.responseTime).to.be.below(200);",
 							"});",
-							" ",
-							"//Check for valid response status",
-							"pm.test(\"Verify Status code is 200\", function () {",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
 							"    pm.response.to.have.status(200);",
 							"});",
 							"",
-							"//Check for expected responseBody",
-							"pm.test(\"Verify response data has list of users\", function () {",
-							"    pm.expect(pm.response.json().data).to.not.be.empty;",
-							"",
-							"    pm.environment.set('usersID',pm.response.json().data[0].id)",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
+							"pm.test(\"Verify the endpoint returns a list of users\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.not.be.empty;",
+							"});",
 							""
 						],
 						"type": "text/javascript"
@@ -45,48 +33,62 @@
 			],
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "accept",
+						"value": "text/plain; v=1.0"
+					}
+				],
 				"url": {
-					"raw": "{{baseurl}}/api/users",
+					"raw": "{{baseurl}}/Users",
 					"host": [
 						"{{baseurl}}"
 					],
 					"path": [
-						"api",
-						"users"
-					],
-					"query": [
-						{
-							"key": "page",
-							"value": "1",
-							"disabled": true
-						}
+						"Users"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Get single user",
+			"name": "Get User with ID",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"//Check for response time ",
-							"pm.test(\"Response time is less than 500ms\", function () {",
-							"    pm.expect(pm.response.responseTime).to.be.below(500);",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
 							"});",
-							" ",
-							"//Check for valid response status",
-							"pm.test(\"Verify Status code is 200\", function () {",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
 							"    pm.response.to.have.status(200);",
 							"});",
 							"",
-							"//Check for expected responseBody",
-							"pm.test(\"Verify the user record is fetched\", function () {",
-							"    pm.expect(pm.response.json().data).to.not.be.empty;",
-							"    pm.expect(pm.response.json().data.id).to.eql(pm.environment.get('usersID'));   ",
+							"pm.test(`Verify the data of user with ID: ${pm.collectionVariables.get('userID')} is returned`, function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get('userID'));",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var FetchUser = {",
+							"    async: false,",
+							"    crossDomain: true,",
+							"    url: `${pm.collectionVariables.get('baseurl')}/Users`,",
+							"    method: 'GET',",
+							"};",
+							"",
+							"pm.sendRequest(FetchUser, (err, res) => { ",
+							"    var jsonData = res.json();",
+							"    pm.collectionVariables.set(\"userID\",jsonData[0].id)",
 							"});"
 						],
 						"type": "text/javascript"
@@ -95,21 +97,25 @@
 			],
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "accept",
+						"value": "*/*"
+					}
+				],
 				"url": {
-					"raw": "{{baseurl}}/api/users/:userId",
+					"raw": "{{baseurl}}/Users/:userId",
 					"host": [
 						"{{baseurl}}"
 					],
 					"path": [
-						"api",
-						"users",
+						"Users",
 						":userId"
 					],
 					"variable": [
 						{
 							"key": "userId",
-							"value": "{{usersID}}"
+							"value": "{{userID}}"
 						}
 					]
 				}
@@ -117,14 +123,20 @@
 			"response": []
 		},
 		{
-			"name": "Create Users",
+			"name": "Create User",
 			"event": [
 				{
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.environment.set('name',pm.variables.replaceIn('{{$randomFullName}}'));",
-							"pm.environment.set('job',pm.variables.replaceIn('{{$randomJobDescriptor}}'));",
+							"//Set a value for username using the postman variable library",
+							"var username  = pm.variables.replaceIn('{{$randomUserName}}')",
+							"",
+							"//Try to debug to verify a random fullname was created ",
+							"console.log(username);",
+							"",
+							"//Store value in a collection variable ",
+							"pm.collectionVariables.set(\"username\",username)",
 							""
 						],
 						"type": "text/javascript"
@@ -134,27 +146,21 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"//Check for response time ",
 							"pm.test(\"Response time is less than 200ms\", function () {",
 							"    pm.expect(pm.response.responseTime).to.be.below(200);",
 							"});",
-							" ",
-							"//Check for valid response status",
-							"pm.test(\"Verify Status code is 201\", function () {",
-							"    pm.response.to.have.status(201);",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
 							"});",
 							"",
-							"//Check for expected responseBody",
-							"pm.test(\"Verify the user was created successfull\", function () {",
-							"    pm.expect(pm.response.json()).to.not.be.empty;",
-							"    pm.expect(pm.response.json().id).to.not.be.null;",
+							"pm.test(`Verify the user ${pm.collectionVariables.get('username')} as created successfully`, function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.userName).to.eql(pm.collectionVariables.get('username'));",
 							"",
-							"    pm.environment.set('userID',pm.response.json().id)",
-							"",
-							"    //Check the value passed match",
-							"    pm.expect(pm.response.json().name).eql(pm.environment.get('name'));",
-							"    pm.expect(pm.response.json().job).eql(pm.environment.get('job'));",
-							"});"
+							"    pm.collectionVariables.set(\"userID\", pm.response.json().id)",
+							"});",
+							""
 						],
 						"type": "text/javascript"
 					}
@@ -162,38 +168,48 @@
 			],
 			"request": {
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "accept",
+						"value": "*/*"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"{{name}}\",\n    \"job\": \"{{job}}\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
+					"raw": "{\n    \"id\": {{$randomInt}},\n    \"userName\": \"{{username}}\",\n    \"password\": \"{{$randomPassword}}\"\n}"
 				},
 				"url": {
-					"raw": "{{baseurl}}/api/users",
+					"raw": "{{baseurl}}/Users",
 					"host": [
 						"{{baseurl}}"
 					],
 					"path": [
-						"api",
-						"users"
+						"Users"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Update User Record",
+			"name": "Update User Details",
 			"event": [
 				{
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.environment.set('name',pm.variables.replaceIn('{{$randomFullName}}'));",
-							"pm.environment.set('job',pm.variables.replaceIn('{{$randomJobDescriptor}}'));",
+							"//Set a value for username using the postman variable library",
+							"var username  = pm.variables.replaceIn('{{$randomUserName}}')",
+							"",
+							"//Try to debug to verify a random fullname was created ",
+							"console.log(username);",
+							"",
+							"//Store value in a collection variable ",
+							"pm.collectionVariables.set(\"username\",username)",
 							""
 						],
 						"type": "text/javascript"
@@ -203,25 +219,21 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"//Check for response time ",
-							"pm.test(\"Response time is less than 300ms\", function () {",
-							"    pm.expect(pm.response.responseTime).to.be.below(300);",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
 							"});",
-							" ",
-							"//Check for valid response status",
-							"pm.test(\"Verify Status code is 200\", function () {",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
 							"    pm.response.to.have.status(200);",
 							"});",
 							"",
-							"//Check for expected responseBody",
-							"pm.test(\"Verify the user was updated successfull\", function () {",
-							"    pm.expect(pm.response.json()).to.not.be.empty;",
-							"    pm.expect(pm.response.json().id).to.not.be.null;",
+							"pm.test(`Verify the user ${pm.collectionVariables.get('username')} as created successfully`, function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.userName).to.eql(pm.collectionVariables.get('username'));",
 							"",
-							"    //Check the value passed match",
-							"    pm.expect(pm.response.json().name).eql(pm.environment.get('name'));",
-							"    pm.expect(pm.response.json().job).eql(pm.environment.get('job'));",
-							"});"
+							"    pm.collectionVariables.set(\"userID\", pm.response.json().id)",
+							"});",
+							""
 						],
 						"type": "text/javascript"
 					}
@@ -229,29 +241,78 @@
 			],
 			"request": {
 				"method": "PUT",
-				"header": [],
+				"header": [
+					{
+						"key": "accept",
+						"value": "*/*"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json; v=1.0"
+					}
+				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"{{name}}\",\n    \"job\": \"{{job}}\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
+					"raw": "{\n    \"id\": {{userID}},\n    \"userName\": \"{{username}}\",\n    \"password\": \"{{$randomPassword}}\"\n}"
 				},
 				"url": {
-					"raw": "{{baseurl}}/api/users/:userID",
+					"raw": "{{baseurl}}/Users/:userId",
 					"host": [
 						"{{baseurl}}"
 					],
 					"path": [
-						"api",
-						"users",
-						":userID"
+						"Users",
+						":userId"
 					],
 					"variable": [
 						{
-							"key": "userID",
+							"key": "userId",
+							"value": "{{userID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "accept",
+						"value": "*/*"
+					}
+				],
+				"url": {
+					"raw": "{{baseurl}}/Users/:userId",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"Users",
+						":userId"
+					],
+					"variable": [
+						{
+							"key": "userId",
 							"value": "{{userID}}"
 						}
 					]
@@ -278,6 +339,21 @@
 					""
 				]
 			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseurl",
+			"value": "https://fakerestapi.azurewebsites.net/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "userID",
+			"value": 1
+		},
+		{
+			"key": "username",
+			"value": ""
 		}
 	]
 }
